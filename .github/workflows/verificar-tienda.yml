@@ -1,0 +1,30 @@
+name: DropLux - verificar archivos de tienda
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  revisar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validar JavaScript
+        run: |
+          node --check checkout-real.js
+          node --check order-config.js
+      - name: Comprobar conexión y modo seguro
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          s=Path('index.html').read_text()
+          config=Path('order-config.js').read_text()
+          assert 'src="/checkout-real.js"' in s
+          assert 'src="/order-config.js"' in s
+          assert 'enabled: false' in config, 'El registro real no debe activarse sin protección'
+          assert 'supabase.co/functions/v1/crear-pedido' in config
+          assert 'window.DROPLUX_PRODUCTS' in s
+          assert Path('privacidad.html').exists()
+          print('✓ Tienda conectada en modo seguro; pedidos no activados')
+          PY
