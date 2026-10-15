@@ -32,7 +32,11 @@
     form.appendChild(widgetHost);
     form.appendChild(progress);
   }
-  if (consent) consent.innerHTML = '<label style="display:flex;align-items:center;gap:8px;color:#24373c;font-size:12px;line-height:1.5"><input type="checkbox" required name="aviso_privacidad"/> Acepto el <a href="/privacidad.html" target="_blank" rel="noopener" style="color:#136d5b;text-decoration:underline">aviso de privacidad</a> para tramitar mi pedido.</label>';
+  if (consent) consent.innerHTML = '<input type="checkbox" required name="aviso_privacidad"/> Acepto el <a href="/privacidad.html" target="_blank" rel="noopener" style="color:#136d5b;text-decoration:underline">aviso de privacidad</a> para tramitar mi pedido.';
+  if (enabled) {
+    const label = document.querySelector('#checkout-overlay .modal-head .eyebrow');
+    if (label) label.textContent = 'PEDIDO SEGURO';
+  }
   if (notice) notice.textContent = enabled
     ? 'Tu folio se asigna y guarda de forma segura. El envío a tu domicilio se cotiza antes de confirmar el importe a transferir. No pagues hasta recibir la confirmación.'
     : 'Estamos terminando de configurar el registro seguro de pedidos. Puedes explorar todos los perfumes y pedir una cotización por WhatsApp. No realices transferencias todavía.';
@@ -49,6 +53,7 @@
     script.src='https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
     script.async=true;
     script.defer=true;
+    script.onload=()=>setupWidget();
     script.onerror=()=>{progress.textContent='No pudimos cargar la verificación de seguridad. Comprueba tu conexión.'};
     document.head.appendChild(script);
   }
