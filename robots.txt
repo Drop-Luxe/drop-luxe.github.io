@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://drop-luxe.github.io/sitemap.xml
