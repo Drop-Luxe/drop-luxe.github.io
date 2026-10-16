@@ -66,11 +66,18 @@ Deno.serve(async(req)=>{
  if(!p)return reply({error:'Revisa tus datos y los productos seleccionados'},422);
  // Prueba sin registrar clientes ni consumir folios: requiere CAPTCHA válido de producción.
  const dryRun=(body as Record<string,unknown>).dry_run===true;
+ const testOrder=(body as Record<string,unknown>).test_order===true;
+ if(dryRun&&testOrder)return reply({error:'Elige una sola modalidad de prueba'},400);
  const db=createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false}});
  // Idempotencia: un reintento del mismo pedido recupera el mismo folio, sin datos personales.
- if(!dryRun){
+ if(!dryRun&&!testOrder){
   const prev=await db.from('droplux_orders').select('folio').eq('request_id',p.request_id).maybeSingle();
   if(prev.data?.folio)return reply({folio:prev.data.folio,registrado:true,pendiente:true});
+ }
+ if(testOrder){
+  const prev=await db.from('droplux_test_orders').select('test_number,total_mxn').eq('request_id',p.request_id).maybeSingle();
+  if(prev.error)return reply({error:'No se pudo consultar la prueba'},503);
+  if(prev.data)return reply({prueba_pedido_registrado:true,venta_real:false,folio_prueba:'T-'+String(prev.data.test_number).padStart(3,'0'),total_productos_mxn:prev.data.total_mxn});
  }
  let passed=false;
  try{passed=await checkCaptcha(p.turnstile_token,captcha,req.headers.get('cf-connecting-ip'))}catch{return reply({error:'Verificación antispam temporalmente no disponible'},503)}
@@ -78,6 +85,22 @@ Deno.serve(async(req)=>{
  const a=calculate(p.cart);
  if(dryRun)return reply({prueba_correcta:true,registrado:false,total_productos_mxn:a.total,
   aviso:'Cloudflare y Supabase respondieron. No se guardaron datos y no se consumió ningún folio.'});
+ if(testOrder){
+  // Almacén aislado: no guardar datos personales, no consumir la serie D de ventas.
+  const {data,error}=await db.from('droplux_test_orders').insert({
+    request_id:p.request_id,items:a.items,total_mxn:a.total
+  }).select('test_number').single();
+  if(error){
+   if(error.code==='23505'){
+    const prev=await db.from('droplux_test_orders').select('test_number,total_mxn').eq('request_id',p.request_id).maybeSingle();
+    if(prev.data)return reply({prueba_pedido_registrado:true,venta_real:false,folio_prueba:'T-'+String(prev.data.test_number).padStart(3,'0'),total_productos_mxn:prev.data.total_mxn});
+   }
+   console.error('Error creando prueba de pedido',error.code);
+   return reply({error:'No se pudo guardar la prueba de pedido'},503);
+  }
+  return reply({prueba_pedido_registrado:true,venta_real:false,folio_prueba:'T-'+String(data.test_number).padStart(3,'0'),total_productos_mxn:a.total,
+    aviso:'Pedido de prueba almacenado sin datos personales. No es una venta ni consume folios reales.'},201);
+ }
  const {data,error}=await db.from('droplux_orders').insert({
   request_id:p.request_id,customer_name:p.customer_name,customer_phone:p.customer_phone,
   customer_email:p.customer_email,shipping_address:p.shipping_address,items:a.items,
