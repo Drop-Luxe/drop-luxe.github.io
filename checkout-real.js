@@ -94,7 +94,24 @@
     } catch { progress.textContent='No se pudo mostrar la verificación. Actualiza la página.'; }
   }
   const checkoutBtn = document.getElementById('go-checkout');
-  if (checkoutBtn) checkoutBtn.addEventListener('click', () => { setTimeout(setupWidget, 50); });
+  if (checkoutBtn) {
+    if (!canSubmit) {
+      // Sin aviso de privacidad definitivo, no solicitar datos de domicilio:
+      // ofrecer la opción de consulta por WhatsApp ya incluida en el carrito.
+      checkoutBtn.textContent = 'Solicitar pedido por WhatsApp';
+      checkoutBtn.title = 'Consulta disponibilidad, envío y forma de pago por WhatsApp';
+    }
+    checkoutBtn.addEventListener('click', ev => {
+      if (!canSubmit) {
+        ev.preventDefault();
+        ev.stopImmediatePropagation();
+        const whatsappQuote = document.getElementById('ask-whatsapp');
+        if (whatsappQuote && !whatsappQuote.disabled) whatsappQuote.click();
+      } else {
+        setTimeout(setupWidget, 50);
+      }
+    }, true);
+  }
   // Capture phase: bloquea el antiguo generador local de folios de demostración.
   form.addEventListener('submit', async ev => {
     ev.preventDefault();
