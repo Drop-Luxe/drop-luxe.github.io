@@ -110,7 +110,12 @@
     }
     const items=cartItems();
     if (!items.length) {progress.textContent='Tu bolsa está vacía. Agrega un perfume primero.';return;}
-    const fields=new FormData(form);
+    // Nunca transmitir valores del navegador en una simulación: solo datos ficticios fijos.
+    const fields=testMode ? new Map(Object.entries({
+      nombre:'Cliente de prueba',telefono:'0000000000',correo:'prueba@example.invalid',
+      cp:'00000',calle:'Calle de prueba sin entrega',colonia:'Simulación',
+      municipio:'Simulación',estado:'Simulación',referencias:'Simulación sin envío'
+    })) : new FormData(form);
     if (!requestId) requestId=crypto.randomUUID();
     const payload={
       ...(testMode ? {test_order:true} : {}),
