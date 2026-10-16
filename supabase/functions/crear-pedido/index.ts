@@ -64,14 +64,20 @@ Deno.serve(async(req)=>{
  try{body=JSON.parse(rawText)}catch{return reply({error:'Solicitud inválida'},400)}
  const p=validate(body);
  if(!p)return reply({error:'Revisa tus datos y los productos seleccionados'},422);
+ // Prueba sin registrar clientes ni consumir folios: requiere CAPTCHA válido de producción.
+ const dryRun=(body as Record<string,unknown>).dry_run===true;
  const db=createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false}});
  // Idempotencia: un reintento del mismo pedido recupera el mismo folio, sin datos personales.
- const prev=await db.from('droplux_orders').select('folio').eq('request_id',p.request_id).maybeSingle();
- if(prev.data?.folio)return reply({folio:prev.data.folio,registrado:true,pendiente:true});
+ if(!dryRun){
+  const prev=await db.from('droplux_orders').select('folio').eq('request_id',p.request_id).maybeSingle();
+  if(prev.data?.folio)return reply({folio:prev.data.folio,registrado:true,pendiente:true});
+ }
  let passed=false;
  try{passed=await checkCaptcha(p.turnstile_token,captcha,req.headers.get('cf-connecting-ip'))}catch{return reply({error:'Verificación antispam temporalmente no disponible'},503)}
  if(!passed)return reply({error:'Verificación antispam fallida'},403);
  const a=calculate(p.cart);
+ if(dryRun)return reply({prueba_correcta:true,registrado:false,total_productos_mxn:a.total,
+  aviso:'Cloudflare y Supabase respondieron. No se guardaron datos y no se consumió ningún folio.'});
  const {data,error}=await db.from('droplux_orders').insert({
   request_id:p.request_id,customer_name:p.customer_name,customer_phone:p.customer_phone,
   customer_email:p.customer_email,shipping_address:p.shipping_address,items:a.items,
