@@ -1,6 +1,39 @@
 /* DropLux — luxury v2 interactions. Decorative layer, no change to product/cart/checkout pricing logic. */
 (() => {
   'use strict';
+  /* DropLuxe wholesale collection: standalone store category, independent of the perfume checkout. */
+  (function publishWholesale(){
+    if (document.getElementById('dl-wholesale-products')) return;
+    const headerNav=document.querySelector('.header .nav, header nav.nav, .nav');
+    if(headerNav && !headerNav.querySelector('a[href="/mayoreo.html"]')){
+      const navLink=document.createElement('a');
+      navLink.href='/mayoreo.html';navLink.textContent='Moda y tecnología';navLink.setAttribute('aria-label','Camisas y audífonos: menudeo y mayoreo');
+      headerNav.appendChild(navLink);
+    }
+    const heroLinks=document.querySelector('.hero-buttons');
+    if(heroLinks && !heroLinks.querySelector('a[href="/mayoreo.html"]')){
+      const button=document.createElement('a');button.href='/mayoreo.html';button.className='button outline hero-wholesale';button.textContent='Camisas y audífonos ↗';
+      heroLinks.appendChild(button);
+    }
+    const section=document.createElement('section');
+    section.id='dl-wholesale-products';
+    section.className='dl-wholesale-products';
+    section.setAttribute('aria-labelledby','dl-wholesale-title');
+    const offerings=[
+      {name:'Camisa estilo Polo',image:'/assets/mayoreo/camisa-azul.svg',retail:'$849',bulk:'$649',min:'7 piezas'},
+      {name:'Audífonos estilo Pro 3',image:'/assets/mayoreo/audifonos-pro-3.svg',retail:'$599',bulk:'$449',min:'3 piezas'},
+      {name:'Audífonos estilo 4',image:'/assets/mayoreo/audifonos-4.svg',retail:'$249',bulk:'$159',min:'3 piezas'},
+      {name:'Audífonos estilo Pro 2',image:'/assets/mayoreo/audifonos-pro-2.svg',retail:'$299',bulk:'$199',min:'3 piezas'}
+    ];
+    const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    section.innerHTML='<div class="container"><div class="dl-wholesale-title"><div><p>DROP LUXE · ESPECIAL REVENDEDORES</p><h2 id="dl-wholesale-title">Moda y tecnología <em>a mayoreo.</em></h2></div><p>Precios individuales y descuentos por volumen. Consulta disponibilidad y solicita tu pedido directamente por WhatsApp.</p></div><div class="dl-wholesale-grid">'+offerings.map(o=>'<a class="dl-wholesale-product" href="/mayoreo.html" aria-label="Ver '+escape(o.name)+' y precios"><img src="'+o.image+'" loading="lazy" alt="Imagen ilustrativa: '+escape(o.name)+'"><span class="dl-wholesale-info"><b>'+escape(o.name)+'</b><small>Menudeo '+o.retail+' · Mayoreo '+o.bulk+'</small><strong>Desde '+o.min+' para mayoreo ↗</strong></span></a>').join('')+'</div><div class="dl-wholesale-actions"><a href="/mayoreo.html">Ver catálogo de mayoreo y cotizar por WhatsApp ↗</a><small>Productos sobre pedido · Imágenes ilustrativas · Sujeto a confirmación</small></div></div>';
+    const css=document.createElement('style');css.id='dl-wholesale-styles';
+    css.textContent='#dl-wholesale-products{padding:75px 0 85px;background:#f0ebe3;color:#292821;border-top:1px solid #ddd0ba;border-bottom:1px solid #ddd0ba}#dl-wholesale-products .dl-wholesale-title{display:flex;justify-content:space-between;align-items:end;gap:30px;margin-bottom:28px}#dl-wholesale-products .dl-wholesale-title>div>p{font:800 10px Manrope,Arial,sans-serif;letter-spacing:2.4px;color:#9c7748}#dl-wholesale-products h2{font:500 clamp(43px,5vw,70px)/1 "Cormorant Garamond",Georgia,serif;margin:10px 0 0}#dl-wholesale-products h2 em{font-weight:400;color:#a58256}#dl-wholesale-products .dl-wholesale-title>p{max-width:350px;font:400 12px/1.8 Manrope,sans-serif;color:#6a665e}#dl-wholesale-products .dl-wholesale-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px}#dl-wholesale-products .dl-wholesale-product{display:block;min-width:0;background:#fff;border:1px solid #ddd4c7;text-decoration:none;color:#272824;transition:transform .25s,box-shadow .25s}#dl-wholesale-products .dl-wholesale-product:hover{transform:translateY(-5px);box-shadow:0 14px 27px #16120b17}#dl-wholesale-products img{display:block;width:100%;aspect-ratio:1/.94;object-fit:cover;background:#e7dfd2}#dl-wholesale-products .dl-wholesale-info{padding:17px;display:flex;flex-direction:column;gap:8px}#dl-wholesale-products b{font:500 29px/1 "Cormorant Garamond",Georgia,serif}#dl-wholesale-products small{font:600 10px/1.6 Manrope,Arial,sans-serif;color:#746e64}#dl-wholesale-products strong{font:800 9px/1.5 Manrope,Arial,sans-serif;color:#a18050;text-transform:uppercase;letter-spacing:.6px}#dl-wholesale-products .dl-wholesale-actions{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;margin-top:27px}#dl-wholesale-products .dl-wholesale-actions a{padding:16px 22px;background:#22251f;color:#f6eadd;font:800 10px Manrope,Arial,sans-serif;letter-spacing:.8px;text-transform:uppercase;text-decoration:none}@media(max-width:980px){#dl-wholesale-products .dl-wholesale-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:640px){#dl-wholesale-products{padding:54px 0}#dl-wholesale-products .dl-wholesale-title{display:block}#dl-wholesale-products .dl-wholesale-title>p{margin-top:14px}#dl-wholesale-products .dl-wholesale-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}#dl-wholesale-products .dl-wholesale-info{padding:12px}#dl-wholesale-products b{font-size:23px}#dl-wholesale-products .dl-wholesale-actions a{width:100%;text-align:center}}';
+    document.head.appendChild(css);
+    const after=document.querySelector('.lux-featured')||document.querySelector('.benefit-bar')||document.querySelector('.wholesale-section');
+    if(after)after.insertAdjacentElement('afterend',section);
+    else (document.querySelector('main')||document.body).appendChild(section);
+  })();
   const products = Array.isArray(window.DROPLUX_PRODUCTS) ? window.DROPLUX_PRODUCTS : [];
   if (!products.length) return;
   const find = id => products.find(p => p.id === id);
