@@ -2,7 +2,7 @@
 (() => {
   'use strict';
   /* DropLuxe wholesale collection: standalone store category, independent of the perfume checkout. */
-  (function publishWholesale(){
+  if (new URLSearchParams(window.location.search).get('vista') !== 'antes') (function publishWholesale(){
     if (document.getElementById('dl-wholesale-products')) return;
     const headerNav=document.querySelector('.header .nav, header nav.nav, .nav');
     if(headerNav && !headerNav.querySelector('a[href="/mayoreo.html"]')){
