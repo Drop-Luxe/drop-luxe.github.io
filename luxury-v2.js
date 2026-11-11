@@ -2,6 +2,31 @@
 (() => {
   'use strict';
   const products = Array.isArray(window.DROPLUX_PRODUCTS) ? window.DROPLUX_PRODUCTS : [];
+  // DropLuxe Arabic perfume collection: discoverable from the main storefront.
+  function addArabesEntry() {
+    const nav = document.querySelector('header nav, .site-header nav, .nav-links, .main-nav, .header-menu');
+    if (nav && !nav.querySelector('a[href="/arabes.html"]')) {
+      const a = document.createElement('a');
+      a.href = '/arabes.html';
+      a.textContent = 'Perfumes árabes';
+      a.setAttribute('data-dropluxe-arabes','true');
+      nav.appendChild(a);
+    }
+    const hero = document.querySelector('.hero-copy');
+    if (hero && !hero.querySelector('.dropluxe-arabes-cta')) {
+      const p = document.createElement('p');
+      p.className = 'dropluxe-arabes-cta';
+      p.style.cssText = 'margin-top:12px;font-size:14px;font-weight:600;';
+      const a = document.createElement('a');
+      a.href = '/arabes.html';
+      a.textContent = 'Conoce nuestros 373 perfumes árabes';
+      a.style.cssText = 'color:#b58c5f;text-decoration:underline;text-underline-offset:4px;';
+      p.appendChild(a);
+      hero.appendChild(p);
+    }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded',addArabesEntry,{once:true});
+  else addArabesEntry();
   if (!products.length) return;
   const find = id => products.find(p => p.id === id);
   const money = amount => new Intl.NumberFormat('es-MX', {style:'currency',currency:'MXN',maximumFractionDigits:0}).format(amount);
