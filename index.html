@@ -109,7 +109,7 @@ a[data-navegar]{cursor:pointer}
 <div class="catalog-tools"><label class="search-wrap"><span aria-hidden="true">⌕</span><input aria-label="Buscar perfumes árabes" id="search-arabes" placeholder="Buscar perfume árabe..."/></label><select aria-label="Marca de perfumes árabes" id="brand-arabes"><option value="">Todas las marcas</option></select><select aria-label="Orden de perfumes árabes" id="sort-arabes"><option value="featured">Por marca</option><option value="asc">Menor precio</option><option value="desc">Mayor precio</option><option value="az">Nombre A–Z</option></select></div>
 <div class="catalog-meta"><span id="count-arabes">Cargando perfumes árabes...</span><span class="meta-right">Originales · Sobre pedido · Precios en MXN</span></div>
 <div aria-live="polite" class="brand-results" id="grid-arabes"></div>
-<p class="fine-note">Las fichas sin precio confirmado permiten consultar directamente por WhatsApp. Precios, existencias y envío sujetos a confirmación.</p>
+<p class="fine-note">Las fichas sin precio confirmado permiten consultar directamente por WhatsApp. Los pedidos de esta colección se confirman por WhatsApp; las promociones de las otras colecciones no se aplican automáticamente. Precios, existencias y envío sujetos a confirmación.</p>
 </section>
 <section class="catalog-g5-wrap" id="g5">
 <div class="container catalog-section">
@@ -203,10 +203,10 @@ const idsuffix=type=>type==='Original'?'original':type==='Arabes'?'arabes':'g5';
 const collectionOf=p=>p.arabic?'Arabes':p.type;
 const hasPrice=p=>Number.isFinite(p.price)&&p.price>0;
 const cartCount=()=>Object.values(cart).reduce((a,b)=>a+(Number(b)||0),0);
-const displayName=p=>p.brand==="VICTORIA'S SECRET"?'Body mist · origen por confirmar':(p.type==='G5'?'Alternativa G5':'Original');
+const displayName=p=>p.brand==="VICTORIA'S SECRET"?'Body mist · origen por confirmar':(p.type==='G5'?'Alternativa G5':p.arabic?'Perfumería árabe':'Original');
 function notify(msg){const n=$('#toast');if(!n)return;n.textContent=msg;n.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>n.classList.remove('show'),2600)}
 function saveCart(){try{localStorage.setItem(CART_KEY,JSON.stringify(cart))}catch{}renderCart()}
-function productCard(p){return `<article class="product-card"><div class="product-image"><span class="product-tag">${p.brand==="VICTORIA'S SECRET"?'BODY MIST · VERIFICAR ORIGEN':(p.type==='G5'?'LÍNEA G5 · NO ORIGINAL':'PERFUMERÍA ORIGINAL')}</span><img loading="lazy" decoding="async" src="${safe(p.image)}" alt="${safe(p.brand+' '+p.name)}"></div><div class="product-content"><span class="product-brand">${safe(p.brand)}</span><div class="product-name">${safe(p.name)}</div><span class="product-base">${safe(p.available)}</span><div class="product-price">${hasPrice(p)?money(p.price):'Consultar precio'}</div>${hasPrice(p)?`<button type="button" data-add="${safe(p.id)}" class="product-buy">Agregar a mi bolsa <span aria-hidden="true">↗</span></button>`:`<button type="button" data-consult="${safe(p.id)}" class="product-buy">Consultar por WhatsApp <span aria-hidden="true">↗</span></button>`}</div></article>`}
+function productCard(p){return `<article class="product-card"><div class="product-image"><span class="product-tag">${p.brand==="VICTORIA'S SECRET"?'BODY MIST · VERIFICAR ORIGEN':(p.type==='G5'?'LÍNEA G5 · NO ORIGINAL':p.arabic?'PERFUMERÍA ÁRABE':'PERFUMERÍA ORIGINAL')}</span><img loading="lazy" decoding="async" src="${safe(p.image)}" alt="${safe(p.brand+' '+p.name)}"></div><div class="product-content"><span class="product-brand">${safe(p.brand)}</span><div class="product-name">${safe(p.name)}</div><span class="product-base">${safe(p.available)}</span><div class="product-price">${hasPrice(p)?money(p.price):'Consultar precio'}</div>${hasPrice(p)?`<button type="button" data-add="${safe(p.id)}" class="product-buy">Agregar a mi bolsa <span aria-hidden="true">↗</span></button>`:`<button type="button" data-consult="${safe(p.id)}" class="product-buy">Consultar por WhatsApp <span aria-hidden="true">↗</span></button>`}</div></article>`}
 function sortedItems(type){let s=state[type];let items=PRODUCTS.filter(p=>collectionOf(p)===type&&(!s.brand||p.brand===s.brand)&&(!s.search||normalize(p.brand+' '+p.name).includes(normalize(s.search))));
  if(s.sort==='asc')items.sort((a,b)=>(hasPrice(b)-hasPrice(a))||(a.price-b.price)||a.name.localeCompare(b.name,'es'));
  else if(s.sort==='desc')items.sort((a,b)=>(hasPrice(b)-hasPrice(a))||(b.price-a.price)||a.name.localeCompare(b.name,'es'));
@@ -233,7 +233,7 @@ function cartEntries(){return Object.entries(cart).filter(([id,qty])=>byId.has(i
 function getAmounts(){
  const entries=cartEntries(),subtotal=entries.reduce((acc,p)=>acc+p.price*p.qty,0);
  const g5=entries.filter(p=>p.type==='G5'),g5Count=g5.reduce((a,p)=>a+p.qty,0),g5Sub=g5.reduce((a,p)=>a+p.price*p.qty,0);
- const ori=entries.filter(p=>p.type==='Original'),oriCount=ori.reduce((a,p)=>a+p.qty,0),oriSub=ori.reduce((a,p)=>a+p.price*p.qty,0);
+ const ori=entries.filter(p=>p.type==='Original'&&!p.arabic),oriCount=ori.reduce((a,p)=>a+p.qty,0),oriSub=ori.reduce((a,p)=>a+p.price*p.qty,0);
  const g5Promo=g5Count>=3?{amount:Math.round(g5Sub*.08),label:'Trío G5 · 8%'}:g5Count>=2?{amount:Math.round(g5Sub*.05),label:'Dúo G5 · 5%'}:{amount:0,label:''};
  const originalPromo=oriCount>=3?{amount:Math.round(oriSub*.08),label:'3+ originales · 8%'}:oriCount>=2?{amount:Math.round(oriSub*.06),label:'Dúo originales · 6%'}:{amount:0,label:''};
  const winner=originalPromo.amount>g5Promo.amount?originalPromo:g5Promo;
@@ -249,7 +249,7 @@ function closeCheckout(){$('#checkout-overlay').hidden=true;document.body.classL
 prepareCollection('Original');prepareCollection('Arabes');prepareCollection('G5');
 $('#cart-items').addEventListener('click',e=>{const btn=e.target.closest('[data-qty]');if(btn)changeQty(btn.dataset.qty,Number(btn.dataset.delta))});
 $('#open-cart').addEventListener('click',()=>toggleCart(true));$('#close-cart').addEventListener('click',()=>toggleCart(false));$('#drawer-overlay').addEventListener('click',()=>toggleCart(false));
-$('#go-checkout').addEventListener('click',()=>{if(!cartCount())return;toggleCart(false);$('#demo-order').hidden=true;$('#checkout-overlay').hidden=false;document.body.classList.add('locked')});
+$('#go-checkout').addEventListener('click',()=>{if(!cartCount())return;if(cartEntries().some(p=>p.arabic)){$('#ask-whatsapp').click();return;}toggleCart(false);$('#demo-order').hidden=true;$('#checkout-overlay').hidden=false;document.body.classList.add('locked')});
 $('#close-checkout').addEventListener('click',closeCheckout);$('#checkout-overlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeCheckout()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){toggleCart(false);closeCheckout()}});
 $('#ask-whatsapp').addEventListener('click',()=>{const {entries,total,label}=getAmounts();if(!entries.length)return;const message=['Hola DropLux, me gustaría consultar disponibilidad y envío de estos perfumes:',...entries.map(p=>`• ${p.qty} × ${p.brand} ${p.name} (${displayName(p)})`),`Productos: ${money(total)}${label?' con promo '+label:''}`,'¿Me pueden cotizar el envío final?'].join('\n');window.open(`https://wa.me/${whatsapp}?text=${encodeURIComponent(message)}`,'_blank','noopener')});
@@ -294,6 +294,6 @@ document.addEventListener('click',event=>{
  if(window.location.hash!==targetId)history.replaceState(null,'',targetId);
 });
 })();
-</script><script defer src="/order-config.js"></script><script defer src="/checkout-real.js"></script><script defer src="/luxury-v2.js?v=20261111-3"></script>
+</script><script defer src="/order-config.js"></script><script defer src="/checkout-real.js?v=20261111-4"></script><script defer src="/luxury-v2.js?v=20261111-4"></script>
 </body>
 </html>

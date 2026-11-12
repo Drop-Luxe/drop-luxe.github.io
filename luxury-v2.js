@@ -125,7 +125,7 @@
     returnFocus = source instanceof HTMLElement ? source : document.activeElement;
     const isMist = p.brand === "VICTORIA'S SECRET";
     const category = isMist ? 'BODY MIST · ORIGEN POR CONFIRMAR' :
-      p.type === 'G5' ? 'LÍNEA ALTERNATIVA G5 · NO ORIGINAL' : 'PERFUMERÍA ORIGINAL';
+      p.type === 'G5' ? 'LÍNEA ALTERNATIVA G5 · NO ORIGINAL' : p.arabic ? 'PERFUMERÍA ÁRABE' : 'PERFUMERÍA ORIGINAL';
     modalCategory.textContent = category;
     modalName.textContent = p.id === 'O016' ? 'Stronger With You Intensely' : p.name;
     modalDesc.textContent = isMist
@@ -133,7 +133,8 @@
       : p.type === 'G5'
         ? 'Fragancia de línea alternativa G5. No es un producto original de la marca mencionada; la imagen se presenta únicamente como referencia.'
         : 'Una pieza de nuestra colección de perfumería original. Selecciona tu fragancia y consulta la disponibilidad y entrega de tu pedido.';
-    modalPrice.textContent = money(p.price);
+    modalPrice.textContent = Number.isFinite(p.price)&&p.price>0 ? money(p.price) : 'Consultar precio';
+    modalBuy.textContent = Number.isFinite(p.price)&&p.price>0 ? 'Agregar a mi bolsa ↗' : 'Consultar por WhatsApp ↗';
     modalStatus.textContent = p.available || 'Sobre pedido · Sujeto a confirmación';
     modalImage.src = p.image;
     modalImage.alt = p.brand + ' ' + p.name;
@@ -159,7 +160,7 @@
   }
 
   function addThroughExistingCart(p) {
-    const grid = document.getElementById(p.type === 'Original' ? 'grid-original' : 'grid-g5');
+    const grid = document.getElementById(p.arabic ? 'grid-arabes' : p.type === 'Original' ? 'grid-original' : 'grid-g5');
     if (!grid) return;
     const proxy = document.createElement('button');
     proxy.type = 'button';
@@ -177,10 +178,10 @@
       openModal(find(trigger.dataset.luxOpen), trigger);
       return;
     }
-    const visual = event.target.closest('#grid-original .product-image, #grid-g5 .product-image, #grid-original .product-name, #grid-g5 .product-name');
+    const visual = event.target.closest('#grid-original .product-image, #grid-g5 .product-image, #grid-arabes .product-image, #grid-original .product-name, #grid-g5 .product-name, #grid-arabes .product-name');
     if (visual) {
       const card = visual.closest('.product-card');
-      const id = card?.querySelector('[data-add]')?.dataset.add;
+      const id = card?.querySelector('[data-add], [data-consult]')?.getAttribute('data-add') || card?.querySelector('[data-consult]')?.dataset.consult;
       if (id) openModal(find(id), visual);
       return;
     }
@@ -194,7 +195,8 @@
   modalBuy.addEventListener('click', () => {
     if (!active) return;
     const p = active;
-    addThroughExistingCart(p);
+    if(Number.isFinite(p.price)&&p.price>0) addThroughExistingCart(p);
+    else window.open('https://wa.me/523340637423?text='+encodeURIComponent('Hola DropLuxe, quiero consultar precio y disponibilidad de '+p.brand+' '+p.name),'_blank','noopener');
     closeModal();
   });
 
@@ -214,9 +216,9 @@
       }
     }
     if ((event.key === 'Enter' || event.key === ' ') && event.target.matches('.product-image, .product-name') &&
-      event.target.closest('#grid-original, #grid-g5')) {
+      event.target.closest('#grid-original, #grid-g5, #grid-arabes')) {
       event.preventDefault();
-      const id = event.target.closest('.product-card')?.querySelector('[data-add]')?.dataset.add;
+      const id = event.target.closest('.product-card')?.querySelector('[data-add]')?.dataset.add || event.target.closest('.product-card')?.querySelector('[data-consult]')?.dataset.consult;
       if (id) openModal(find(id), event.target);
     }
   }, true);
@@ -227,12 +229,12 @@
       el.setAttribute('role','button');
       el.setAttribute('aria-haspopup','dialog');
       const card = el.closest('.product-card');
-      const id = card?.querySelector('[data-add]')?.dataset.add;
+      const id = card?.querySelector('[data-add], [data-consult]')?.getAttribute('data-add') || card?.querySelector('[data-consult]')?.dataset.consult;
       const p = id && find(id);
       if (p) el.setAttribute('aria-label','Ver detalles de ' + p.brand + ' ' + p.name);
     });
   }
-  ['grid-original','grid-g5'].forEach(id => {
+  ['grid-original','grid-g5','grid-arabes'].forEach(id => {
     const host = document.getElementById(id);
     if (!host) return;
     makeCatalogClickable(host);
@@ -267,7 +269,7 @@
     if (io) io.observe(node);
     else node.classList.add('is-visible');
   });
-  ['grid-original','grid-g5'].forEach(id => {
+  ['grid-original','grid-g5','grid-arabes'].forEach(id => {
     const el = document.getElementById(id);
     if (el) scheduleReveals(el);
   });

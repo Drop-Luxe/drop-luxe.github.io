@@ -83,6 +83,7 @@
       /^[GO]\d{3}$/.test(id) && Number.isInteger(qty) && qty > 0 && qty <= 20
     ).map(([id,qty]) => ({id,qty}));
   };
+  const hasArabicItems = () => { try { return Object.entries(JSON.parse(localStorage.getItem('droplux_cart_v2') || '{}')).some(([id,qty])=>/^AR\d{3}$/.test(id)&&Number(qty)>0); } catch { return false; } };
   function setupWidget() {
     if (!canSubmit || widgetId !== null || !window.turnstile || !widgetHost || document.querySelector('#checkout-overlay')?.hidden) return;
     try {
@@ -102,7 +103,7 @@
       checkoutBtn.title = 'Consulta disponibilidad, envío y forma de pago por WhatsApp';
     }
     checkoutBtn.addEventListener('click', ev => {
-      if (!canSubmit) {
+      if (hasArabicItems() || !canSubmit) {
         ev.preventDefault();
         ev.stopImmediatePropagation();
         const whatsappQuote = document.getElementById('ask-whatsapp');
@@ -116,6 +117,7 @@
   form.addEventListener('submit', async ev => {
     ev.preventDefault();
     ev.stopImmediatePropagation();
+    if (hasArabicItems()) { progress.textContent='Los perfumes árabes se confirman por WhatsApp antes de registrar el pedido.'; document.getElementById('ask-whatsapp')?.click(); return; }
     if (!canSubmit || sent || sending) return;
     if (!form.reportValidity()) return;
     setupWidget();
