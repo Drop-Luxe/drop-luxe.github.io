@@ -5,9 +5,9 @@
   // DropLuxe Arabic perfume collection: discoverable from the main storefront.
   function addArabesEntry() {
     const nav = document.querySelector('header nav, .site-header nav, .nav-links, .main-nav, .header-menu');
-    if (nav && !nav.querySelector('a[href="/arabes.html"]')) {
+    if (nav && !nav.querySelector('a[href="#arabes"]')) {
       const a = document.createElement('a');
-      a.href = '/arabes.html';
+      a.href = '#arabes';
       a.textContent = 'Perfumes árabes';
       a.setAttribute('data-dropluxe-arabes','true');
       nav.appendChild(a);
@@ -18,7 +18,7 @@
       p.className = 'dropluxe-arabes-cta';
       p.style.cssText = 'margin-top:12px;font-size:14px;font-weight:600;';
       const a = document.createElement('a');
-      a.href = '/arabes.html';
+      a.href = '#arabes';
       a.textContent = 'Conoce nuestros 373 perfumes árabes';
       a.style.cssText = 'color:#b58c5f;text-decoration:underline;text-underline-offset:4px;';
       p.appendChild(a);
